@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UMBC DoorDash Prototype</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <h1>UMBC DoorDash</h1>
+    <nav class="nav">
+      <ul>
+        <li><a href="#" id="home-link">Home</a></li>
+        <li><a href="#" id="menu-link">Menu</a></li>
+        <li><a href="#" id="cart-link">Cart</a></li>
+        <li><a href="#" id="feedback-link">Feedback</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Home Section -->
+    <section id="home" class="section active">
+      <h2>Welcome to UMBC DoorDash</h2>
+      <p>Select a dining location below to start your order.</p>
+
+      <div class="locations">
+        <div class="card">
+          <h3>True Grits Dining Hall</h3>
+          <button class="menu-btn">View Menu</button>
+        </div>
+        <div class="card">
+          <h3>Chick-fil-A</h3>
+          <button class="menu-btn">View Menu</button>
+        </div>
+        <div class="card">
+          <h3>Einstein Bros. Bagels</h3>
+          <button class="menu-btn">View Menu</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="section hidden">
+      <h2>Menu</h2>
+      <div class="menu-items">
+        <div class="menu-item">
+          <h4>Chicken Sandwich</h4>
+          <p>$7.99</p>
+          <button>Add to Cart</button>
+        </div>
+        <div class="menu-item">
+          <h4>Bagel with Cream Cheese</h4>
+          <p>$3.49</p>
+          <button>Add to Cart</button>
+        </div>
+        <div class="menu-item">
+          <h4>Burrito Bowl</h4>
+          <p>$8.99</p>
+          <button>Add to Cart</button>
+        </div>
+      </div>
+      <button class="back-btn">Back to Home</button>
+    </section>
+
+    <!-- Cart Section -->
+    <section id="cart" class="section hidden">
+      <h2>Your Cart</h2>
+      <div id="cart-items">
+        <p>Your cart is empty.</p>
+      </div>
+      <button class="checkout-btn">Proceed to Checkout</button>
+      <button class="back-btn">Back to Menu</button>
+    </section>
+
+    <!-- Feedback Section -->
+    <section id="feedback" class="section hidden">
+      <h2>User Feedback</h2>
+      <form id="feedback-form">
+        <label for="feedback-text">Leave your feedback:</label>
+        <textarea id="feedback-text" rows="4" placeholder="Your comments here..."></textarea>
+        <button type="submit">Submit</button>
+      </form>
+      <button class="back-btn">Back to Home</button>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 UMBC DoorDash Prototype | Created by Team 10</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

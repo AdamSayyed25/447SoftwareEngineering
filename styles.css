@@ -1,0 +1,165 @@
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+h1, h2, h3, h4 {
+  margin: 0.5em 0;
+}
+
+p {
+  margin: 0.3em 0;
+}
+
+/* Header */
+header {
+  background-color: #000000; /* UMBC black */
+  color: #ffd200; /* UMBC gold */
+  padding: 1em 2em;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+}
+
+nav ul {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+}
+
+nav ul li a {
+  color: #ffd200;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+nav ul li a:hover {
+  background-color: #ffd200;
+  color: #000000;
+}
+
+/* Sections */
+.section {
+  padding: 2em;
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* Cards */
+.card {
+  background-color: #ffffff;
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.card button {
+  background-color: #ffd200;
+  border: none;
+  padding: 0.5em 1em;
+  margin-top: 0.5em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.card button:hover {
+  background-color: #e6c200;
+}
+
+/* Menu Items */
+.menu-items, .locations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+
+/* Cart */
+#cart-items {
+  margin-top: 1em;
+}
+
+.checkout-btn {
+  background-color: #000000;
+  color: #ffd200;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.checkout-btn:hover {
+  background-color: #222222;
+}
+
+/* Feedback Form */
+#feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+#feedback-form textarea {
+  resize: vertical;
+  padding: 0.5em;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+#feedback-form button {
+  background-color: #ffd200;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#feedback-form button:hover {
+  background-color: #e6c200;
+}
+
+/* Back Buttons */
+.back-btn {
+  background-color: #000000;
+  color: #ffd200;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 1em;
+}
+
+.back-btn:hover {
+  background-color: #222222;
+}
+
+/* Footer */
+footer {
+  background-color: #000000;
+  color: #ffd200;
+  text-align: center;
+  padding: 1em;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
