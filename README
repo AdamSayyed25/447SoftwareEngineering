@@ -1,2 +1,12 @@
 # UMBC DoorDash - Frontend Prototype
-test
+
+## Quick Start
+1. Run `npm install`
+2. Run `npm run dev`
+3. Open [http://localhost:5173](http://localhost:5173)
+cart-checkout
+## Notes
+- This is a **frontend-only** demo following the SRS specs.
+- Orders, feedback, and cart data are stored in `localStorage`.
+- No real authentication or payments.
+- Ready to connect to a backend API later.
