@@ -1,0 +1,23 @@
+:root { --accent:#003366; --muted:#666; }
+* { box-sizing: border-box; }
+body {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  margin: 0; color: #111;
+}
+.app-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; background: var(--accent); color: white;
+}
+.app-header a { color: inherit; text-decoration: none; margin-left: 12px; }
+.app-root main { padding: 20px; min-height: 70vh; }
+.locations { display: flex; gap: 12px; flex-wrap: wrap; }
+.loc-card { border: 1px solid #ddd; padding: 12px; width: 220px; border-radius: 8px; }
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+.menu-card { border: 1px solid #eee; padding: 12px; border-radius: 6px; }
+.menu-bottom { display: flex; justify-content: space-between; align-items: center; }
+.cart-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; }
+.checkout-form label, .feedback-form label { display: block; margin-bottom: 10px; }
+.app-footer { text-align: center; padding: 12px; border-top: 1px solid #eee; color: var(--muted); }
+button { background: var(--accent); color: white; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; }
+input, textarea, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
+.notice { background: #f0fff0; padding: 12px; border: 1px solid #cfc; border-radius: 6px; }

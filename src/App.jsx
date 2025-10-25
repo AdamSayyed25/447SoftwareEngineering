@@ -1,0 +1,52 @@
+import React from 'react'
+import { Routes, Route, Link } from 'react-router-dom'
+import Home from './components/Home'
+import MenuPage from './components/MenuPage'
+import CartPage from './components/CartPage'
+import Checkout from './components/Checkout'
+import Confirmation from './components/Confirmation'
+import Feedback from './components/Feedback'
+import CartProvider, { useCart } from './contexts/CartContext'
+
+function Header() {
+  const { items } = useCart()
+  const count = items.reduce((s, i) => s + i.qty, 0)
+  return (
+    <header className="app-header">
+      <h1><Link to="/">UMBC DoorDash (Prototype)</Link></h1>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/cart">Cart ({count})</Link>
+      </nav>
+    </header>
+  )
+}
+
+export default function App() {
+  return (
+    <CartProvider>
+      <Layout />
+    </CartProvider>
+  )
+}
+
+function Layout() {
+  return (
+    <div className="app-root">
+      <Header />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/menu/:locationId" element={<MenuPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/confirmation" element={<Confirmation />} />
+          <Route path="/feedback" element={<Feedback />} />
+        </Routes>
+      </main>
+      <footer className="app-footer">
+        UMBC DoorDash - Prototype (no real payments)
+      </footer>
+    </div>
+  )
+}
