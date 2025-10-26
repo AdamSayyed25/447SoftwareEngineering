@@ -1,31 +1,27 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './components/Home'
 import MenuPage from './components/MenuPage'
 import CartPage from './components/CartPage'
 import Checkout from './components/Checkout'
 import Confirmation from './components/Confirmation'
 import Feedback from './components/Feedback'
-import CartProvider, { useCart } from './contexts/CartContext'
-
-function Header() {
-  const { items } = useCart()
-  const count = items.reduce((s, i) => s + i.qty, 0)
-  return (
-    <header className="app-header">
-      <h1><Link to="/">UMBC DoorDash (Prototype)</Link></h1>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/cart">Cart ({count})</Link>
-      </nav>
-    </header>
-  )
-}
+import Header from './components/Header'
+import LoginPage from './components/LoginPage'
+import CartProvider from './contexts/CartContext'
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
   return (
     <CartProvider>
-      <Layout />
+      <Routes>
+        <Route path="/login" element={<LoginPage onLogin={setIsLoggedIn} />} />
+        <Route
+          path="/*"
+          element={isLoggedIn ? <Layout /> : <Navigate to="/login" replace />}
+        />
+      </Routes>
     </CartProvider>
   )
 }
