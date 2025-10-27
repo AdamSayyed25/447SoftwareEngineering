@@ -1,11 +1,14 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './components/Home'
 import MenuPage from './components/MenuPage'
 import CartPage from './components/CartPage'
 import Checkout from './components/Checkout'
 import Confirmation from './components/Confirmation'
 import Feedback from './components/Feedback'
+import Header from './components/Header'
+import LoginPage from './components/LoginPage'
+import CartProvider from './contexts/CartContext'
 import DasherDashboard from './components/DasherDashboard'
 import CartProvider, { useCart } from './contexts/CartContext'
 
@@ -25,9 +28,17 @@ function Header() {
 }
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
   return (
     <CartProvider>
-      <Layout />
+      <Routes>
+        <Route path="/login" element={<LoginPage onLogin={setIsLoggedIn} />} />
+        <Route
+          path="/*"
+          element={isLoggedIn ? <Layout /> : <Navigate to="/login" replace />}
+        />
+      </Routes>
     </CartProvider>
   )
 }

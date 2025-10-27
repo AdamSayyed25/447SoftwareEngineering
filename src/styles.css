@@ -22,6 +22,103 @@ button { background: var(--accent); color: white; border: none; padding: 8px 10p
 input, textarea, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
 .notice { background: #f0fff0; padding: 12px; border: 1px solid #cfc; border-radius: 6px; }
 
+/* Login Page Styles */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-container {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-title {
+  color: var(--accent);
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: var(--muted);
+  margin: 0 0 30px 0;
+  font-size: 16px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.login-error {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #fcc;
+  font-size: 14px;
+}
+
+.login-button {
+  background: var(--accent);
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 8px;
+}
+
+.login-button:hover {
+  background: #002244;
+}
+
+.login-notice {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  font-style: italic;
+}
 /* Dasher Dashboard Styles */
 .dasher-dashboard { max-width: 1200px; margin: 0 auto; }
 .dashboard-header { margin-bottom: 24px; }
