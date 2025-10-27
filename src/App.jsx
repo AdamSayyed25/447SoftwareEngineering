@@ -6,6 +6,7 @@ import CartPage from './components/CartPage'
 import Checkout from './components/Checkout'
 import Confirmation from './components/Confirmation'
 import Feedback from './components/Feedback'
+import DasherDashboard from './components/DasherDashboard'
 import CartProvider, { useCart } from './contexts/CartContext'
 
 function Header() {
@@ -17,6 +18,7 @@ function Header() {
       <nav>
         <Link to="/">Home</Link>
         <Link to="/cart">Cart ({count})</Link>
+        <Link to="/dasher">Dasher Dashboard</Link>
       </nav>
     </header>
   )
@@ -39,9 +41,10 @@ function Layout() {
           <Route path="/" element={<Home />} />
           <Route path="/menu/:locationId" element={<MenuPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout" element={<Checkout />} /> 
           <Route path="/confirmation" element={<Confirmation />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/dasher" element={<DasherDashboard />} />
         </Routes>
       </main>
       <footer className="app-footer">
