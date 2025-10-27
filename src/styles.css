@@ -21,3 +21,36 @@ body {
 button { background: var(--accent); color: white; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; }
 input, textarea, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; }
 .notice { background: #f0fff0; padding: 12px; border: 1px solid #cfc; border-radius: 6px; }
+
+/* Dasher Dashboard Styles */
+.dasher-dashboard { max-width: 1200px; margin: 0 auto; }
+.dashboard-header { margin-bottom: 24px; }
+.dashboard-stats { display: flex; gap: 16px; margin-top: 16px; }
+.stat-card { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 16px; text-align: center; background: #f9f9f9; }
+.stat-value { font-size: 28px; font-weight: bold; color: var(--accent); }
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.dasher-name-section { margin-bottom: 24px; padding: 16px; background: #f0f7ff; border-radius: 8px; }
+.dasher-name-section label { display: block; margin-bottom: 8px; font-weight: bold; }
+.dasher-name-section input { max-width: 300px; }
+.dashboard-sections { display: flex; flex-direction: column; gap: 24px; }
+.dashboard-section { border: 1px solid #ddd; border-radius: 8px; padding: 16px; background: white; }
+.dashboard-section h3 { margin-top: 0; border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
+.order-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+.order-card { border: 2px solid #ddd; border-radius: 8px; padding: 16px; background: white; }
+.order-card.available { border-color: #ffa500; background: #fff9e6; }
+.order-card.claimed { border-color: #4a90e2; background: #e6f3ff; }
+.order-card.delivering { border-color: #50c878; background: #e6ffe6; }
+.order-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.order-id { font-weight: bold; color: var(--accent); }
+.order-time { font-size: 12px; color: var(--muted); }
+.order-customer, .order-location, .order-value { margin: 8px 0; }
+.order-items ul { margin: 4px 0; padding-left: 20px; font-size: 14px; }
+.claim-btn { background: #ffa500; }
+.deliver-btn { background: #50c878; }
+.deliver-btn:hover { background: #45b869; }
+.empty-state { text-align: center; padding: 24px; color: var(--muted); }
+.history-list { margin-top: 16px; }
+.history-item { border: 1px solid #eee; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #fafafa; }
+.history-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.order-date { font-size: 12px; color: var(--muted); }
+.history-details { display: flex; gap: 16px; font-size: 14px; color: var(--muted); }
