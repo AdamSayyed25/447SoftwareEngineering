@@ -29,6 +29,11 @@ export default function DasherDashboard() {
   }
 
   function acceptOrder(order) {
+    if (!dasherName.trim()) {
+      alert('Please enter your dasher name first!')
+      return
+    }
+    
     const acceptedOrder = { ...order, claimedBy: dasherName, claimedAt: new Date().toISOString(), dasherStatus: 'accepted' }
     const dasherOrders = JSON.parse(localStorage.getItem('dasherOrders') || '[]')
     dasherOrders.push(acceptedOrder)
@@ -74,6 +79,7 @@ export default function DasherDashboard() {
   const availableOrders = orders.filter(o => o.status === 'In Progress' && 
     !myOrders.some(mo => mo.id === o.id))
   const activeOrders = myOrders.filter(o => o.dasherStatus === 'accepted')
+  const totalDeliveries = deliveryHistory.length
 
   return (
     <div className="page dasher-dashboard">
@@ -83,6 +89,10 @@ export default function DasherDashboard() {
           <div className="stat-card">
             <div className="stat-value">{activeOrders.length}</div>
             <div className="stat-label">Active Deliveries</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{totalDeliveries}</div>
+            <div className="stat-label">Total Deliveries</div>
           </div>
         </div>
       </div>
