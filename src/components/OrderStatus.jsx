@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ordersAPI } from '../services/api'
 
 export default function OrderStatus() {
   const { orderId } = useParams()
   const navigate = useNavigate()
   const [order, setOrder] = useState(null)
   const [statusHistory, setStatusHistory] = useState([])
+  const [error, setError] = useState('')
 
   useEffect(() => {
     loadOrder()
@@ -13,64 +15,69 @@ export default function OrderStatus() {
     return () => clearInterval(interval)
   }, [orderId])
 
-  function loadOrder() {
+  async function loadOrder() {
     try {
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
-      const dasherOrders = JSON.parse(localStorage.getItem('dasherOrders') || '[]')
-      
-      let foundOrder = orders.find(o => o.id === orderId)
-      
-      if (foundOrder) {
-        // Check if it was claimed by a dasher
-        const claimedOrder = dasherOrders.find(o => o.id === orderId)
-        if (claimedOrder) {
-          foundOrder = { ...foundOrder, claimedBy: claimedOrder.claimedBy, claimedAt: claimedOrder.claimedAt, dasherStatus: claimedOrder.dasherStatus }
-        }
-        
-        setOrder(foundOrder)
-        updateStatusHistory(foundOrder)
-      } else {
-        // Check delivery history
-        const history = JSON.parse(localStorage.getItem('deliveryHistory') || '[]')
-        const historyOrder = history.find(o => o.id === orderId)
-        if (historyOrder) {
-          setOrder({ ...historyOrder, status: 'Delivered' })
-          updateStatusHistory({ ...historyOrder, status: 'Delivered' })
-        }
-      }
+      const foundOrder = await ordersAPI.getById(orderId)
+      setOrder(foundOrder)
+      updateStatusHistory(foundOrder)
+      setError('')
     } catch (err) {
       console.error('Error loading order:', err)
+      if (!order) {
+        setError('Order not found')
+      }
     }
   }
 
   function updateStatusHistory(order) {
     const history = [
-      { status: 'Order Placed', time: order.createdAt, icon: '📝', active: true }
+      { status: 'Order Placed', time: order.created_at, icon: '📝', active: true }
     ]
 
-    if (order.claimedBy) {
+    if (order.status === 'preparing') {
       history.push({ 
         status: 'Preparing', 
-        time: order.createdAt, 
+        time: order.updated_at || order.created_at, 
         icon: '👨‍🍳', 
-        active: order.status !== 'Delivered' 
-      })
-      history.push({ 
-        status: 'Picked Up by Dasher', 
-        time: order.claimedAt, 
-        icon: '🚗', 
-        active: order.dasherStatus !== 'accepted' && order.status !== 'Delivered' 
-      })
-      history.push({ 
-        status: 'On the Way', 
-        time: order.claimedAt, 
-        icon: '🏃', 
-        active: order.status !== 'Delivered' 
+        active: true 
       })
     }
 
-    if (order.status === 'Delivered') {
-      history.push({ status: 'Delivered', time: order.completedAt || new Date().toISOString(), icon: '✅', active: true, completed: true })
+    if (order.status === 'out-for-delivery') {
+      history.push({ 
+        status: 'Preparing', 
+        time: order.created_at, 
+        icon: '👨‍🍳', 
+        active: false 
+      })
+      history.push({ 
+        status: 'On the Way', 
+        time: order.updated_at, 
+        icon: '🏃', 
+        active: true 
+      })
+    }
+
+    if (order.status === 'delivered') {
+      history.push({ 
+        status: 'Preparing', 
+        time: order.created_at, 
+        icon: '👨‍🍳', 
+        active: false 
+      })
+      history.push({ 
+        status: 'Out for Delivery', 
+        time: order.updated_at, 
+        icon: '🚗', 
+        active: false 
+      })
+      history.push({ 
+        status: 'Delivered', 
+        time: order.updated_at, 
+        icon: '✅', 
+        active: true, 
+        completed: true 
+      })
     }
 
     setStatusHistory(history)
@@ -86,7 +93,7 @@ export default function OrderStatus() {
     return times[status] || ''
   }
 
-  if (!order) {
+  if (error || !order) {
     return (
       <div className="page">
         <h2>Order Not Found</h2>
@@ -96,10 +103,18 @@ export default function OrderStatus() {
     )
   }
 
-  const estimatedArrival = order.claimedBy 
-    ? '5-10 minutes' 
-    : order.status === 'Delivered' 
-      ? 'Delivered' 
+  const statusLabels = {
+    'pending': 'Pending',
+    'preparing': 'Preparing',
+    'out-for-delivery': 'Out for Delivery',
+    'delivered': 'Delivered',
+    'cancelled': 'Cancelled'
+  }
+
+  const estimatedArrival = order.status === 'delivered' 
+    ? 'Delivered' 
+    : order.status === 'out-for-delivery'
+      ? '5-10 minutes'
       : '10-15 minutes'
 
   return (
@@ -112,19 +127,12 @@ export default function OrderStatus() {
       <div className="order-status-card">
         <div className="status-summary">
           <div className={`status-badge status-${order.status.toLowerCase().replace(' ', '-')}`}>
-            {order.status === 'In Progress' && order.claimedBy ? 'On the Way' : order.status}
+            {statusLabels[order.status] || order.status}
           </div>
           <div className="est-time">
             <strong>Estimated Arrival:</strong> {estimatedArrival}
           </div>
         </div>
-
-        {order.claimedBy && (
-          <div className="dasher-info">
-            <p><strong>Dasher:</strong> {order.claimedBy}</p>
-            <p className="muted">Your order is being delivered</p>
-          </div>
-        )}
 
         <div className="order-details">
           <h3>Your Order</h3>
@@ -142,8 +150,7 @@ export default function OrderStatus() {
         </div>
 
         <div className="order-location">
-          <p><strong>Drop-off:</strong> {order.drop}</p>
-          <p><strong>Recipient:</strong> {order.name}</p>
+          <p><strong>Drop-off:</strong> {order.drop_off_location}</p>
         </div>
       </div>
 
@@ -166,7 +173,7 @@ export default function OrderStatus() {
         </div>
       </div>
 
-      {order.status === 'Delivered' && (
+      {order.status === 'delivered' && (
         <div className="delivery-complete">
           <div className="notice">
             🎉 Your order has been delivered! <Link to="/feedback">Leave Feedback</Link>

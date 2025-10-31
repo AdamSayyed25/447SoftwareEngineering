@@ -1,78 +1,55 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { ordersAPI } from '../services/api'
 
 export default function OrderHistory() {
   const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadOrders()
-    const interval = setInterval(loadOrders, 2000) // Auto-refresh
-    return () => clearInterval(interval)
   }, [])
 
-  function loadOrders() {
+  async function loadOrders() {
     try {
-      const allOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-      const dasherOrders = JSON.parse(localStorage.getItem('dasherOrders') || '[]')
-      const history = JSON.parse(localStorage.getItem('deliveryHistory') || '[]')
-      
-      // Merge all orders with status
-      const ordersWithStatus = []
-      
-      // Add in-progress orders
-      allOrders.forEach(order => {
-        const claimedOrder = dasherOrders.find(o => o.id === order.id)
-        if (claimedOrder) {
-          ordersWithStatus.push({
-            ...order,
-            claimedBy: claimedOrder.claimedBy,
-            claimedAt: claimedOrder.claimedAt,
-            status: 'In Progress'
-          })
-        } else {
-          ordersWithStatus.push(order)
-        }
-      })
-      
-      // Add completed orders from history
-      history.forEach(order => {
-        if (!ordersWithStatus.find(o => o.id === order.id)) {
-          ordersWithStatus.push({ ...order, status: 'Delivered' })
-        }
-      })
-      
-      // Sort by date (newest first)
-      ordersWithStatus.sort((a, b) => {
-        const dateA = new Date(a.completedAt || a.claimedAt || a.createdAt)
-        const dateB = new Date(b.completedAt || b.claimedAt || b.createdAt)
-        return dateB - dateA
-      })
-      
-      setOrders(ordersWithStatus)
+      const data = await ordersAPI.getAll()
+      setOrders(data)
     } catch (err) {
       console.error('Error loading orders:', err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  const statusLabels = {
+    'pending': 'Pending',
+    'preparing': 'Preparing',
+    'out-for-delivery': 'Out for Delivery',
+    'delivered': 'Delivered',
+    'cancelled': 'Cancelled'
   }
 
   function getStatusBadge(order) {
-    if (order.status === 'Delivered') {
+    if (order.status === 'delivered') {
       return <span className="status-badge status-delivered">Delivered</span>
     }
-    if (order.claimedBy) {
-      return <span className="status-badge status-in-progress">On the Way</span>
-    }
-    return <span className="status-badge status-in-progress">Preparing</span>
+    return <span className={`status-badge status-${order.status}`}>
+      {statusLabels[order.status] || order.status}
+    </span>
   }
 
   function getStatusText(order) {
-    if (order.status === 'Delivered') {
-      return 'Delivered'
+    const labels = {
+      'pending': 'Order placed',
+      'preparing': 'Being prepared',
+      'out-for-delivery': 'On the way',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled'
     }
-    if (order.claimedBy) {
-      return `Being delivered by ${order.claimedBy}`
-    }
-    return 'Being prepared'
+    return labels[order.status] || 'Processing'
   }
+
+  if (loading) return <div className="page">Loading orders...</div>
 
   if (orders.length === 0) {
     return (
@@ -87,8 +64,8 @@ export default function OrderHistory() {
   }
 
   // Separate active and completed orders
-  const activeOrders = orders.filter(o => o.status !== 'Delivered')
-  const completedOrders = orders.filter(o => o.status === 'Delivered')
+  const activeOrders = orders.filter(o => o.status !== 'delivered')
+  const completedOrders = orders.filter(o => o.status === 'delivered')
 
   return (
     <div className="page order-history-page">
@@ -103,7 +80,7 @@ export default function OrderHistory() {
                 <div className="order-card-header">
                   <div>
                     <div className="order-id">Order #{order.id}</div>
-                    <div className="order-date">{new Date(order.createdAt).toLocaleString()}</div>
+                    <div className="order-date">{new Date(order.created_at).toLocaleString()}</div>
                   </div>
                   {getStatusBadge(order)}
                 </div>
@@ -147,7 +124,7 @@ export default function OrderHistory() {
                 <div className="order-card-header">
                   <div>
                     <div className="order-id">Order #{order.id}</div>
-                    <div className="order-date">{new Date(order.createdAt).toLocaleString()}</div>
+                    <div className="order-date">{new Date(order.created_at).toLocaleString()}</div>
                   </div>
                   {getStatusBadge(order)}
                 </div>

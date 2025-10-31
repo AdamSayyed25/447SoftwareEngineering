@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Routes, Route, Navigate, Link } from 'react-router-dom'
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './components/Home'
 import MenuPage from './components/MenuPage'
 import CartPage from './components/CartPage'
@@ -7,58 +7,77 @@ import Checkout from './components/Checkout'
 import Confirmation from './components/Confirmation'
 import Feedback from './components/Feedback'
 import LoginPage from './components/LoginPage'
-import DasherDashboard from './components/DasherDashboard'
+import DriverDashboard from './components/DriverDashboard'
+import DriverDeliveries from './components/DriverDeliveries'
+import DriverStats from './components/DriverStats'
+import RestaurantDashboard from './components/RestaurantDashboard'
+import RestaurantMenu from './components/RestaurantMenu'
+import RestaurantOrders from './components/RestaurantOrders'
+import AdminDashboard from './components/AdminDashboard'
+import AdminUsers from './components/AdminUsers'
+import AdminAnalytics from './components/AdminAnalytics'
+import AdminLocations from './components/AdminLocations'
 import OrderStatus from './components/OrderStatus'
 import OrderHistory from './components/OrderHistory'
-import CartProvider, { useCart } from './contexts/CartContext'
-
-function Header() {
-  const { items } = useCart()
-  const count = items.reduce((s, i) => s + i.qty, 0)
-  return (
-    <header className="app-header">
-      <h1><Link to="/">UMBC DoorDash (Prototype)</Link></h1>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/cart">Cart ({count})</Link>
-        <Link to="/history">My Orders</Link>
-        <Link to="/dasher">Dasher Dashboard</Link>
-      </nav>
-    </header>
-  )
-}
+import CartProvider from './contexts/CartContext'
+import AuthProvider, { useAuth } from './contexts/AuthContext'
+import Header from './components/Header'
+import { RequireAdmin, RequireDriver, RequireStaff } from './components/RouteGuards'
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
   return (
-    <CartProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage onLogin={setIsLoggedIn} />} />
-        <Route
-          path="/*"
-          element={isLoggedIn ? <Layout /> : <Navigate to="/login" replace />}
-        />
-      </Routes>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/*" element={<ProtectedLayout />} />
+        </Routes>
+      </CartProvider>
+    </AuthProvider>
   )
 }
 
-function Layout() {
+function ProtectedLayout() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
   return (
     <div className="app-root">
       <Header />
       <main>
         <Routes>
+          {/* Customer Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/menu/:locationId" element={<MenuPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<Checkout />} /> 
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/confirmation" element={<Confirmation />} />
           <Route path="/order/:orderId" element={<OrderStatus />} />
           <Route path="/history" element={<OrderHistory />} />
           <Route path="/feedback" element={<Feedback />} />
-          <Route path="/dasher" element={<DasherDashboard />} />
+
+          {/* Driver Routes */}
+          <Route path="/driver" element={<RequireDriver><DriverDashboard /></RequireDriver>} />
+          <Route path="/driver/deliveries" element={<RequireDriver><DriverDeliveries /></RequireDriver>} />
+          <Route path="/driver/stats" element={<RequireDriver><DriverStats /></RequireDriver>} />
+
+          {/* Restaurant Staff Routes */}
+          <Route path="/restaurant" element={<RequireStaff><RestaurantDashboard /></RequireStaff>} />
+          <Route path="/restaurant/menu" element={<RequireStaff><RestaurantMenu /></RequireStaff>} />
+          <Route path="/restaurant/orders" element={<RequireStaff><RestaurantOrders /></RequireStaff>} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+          <Route path="/admin/users" element={<RequireAdmin><AdminUsers /></RequireAdmin>} />
+          <Route path="/admin/analytics" element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
+          <Route path="/admin/locations" element={<RequireAdmin><AdminLocations /></RequireAdmin>} />
         </Routes>
       </main>
       <footer className="app-footer">
