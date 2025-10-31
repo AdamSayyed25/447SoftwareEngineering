@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { authAPI } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
     
@@ -16,9 +20,21 @@ export default function LoginPage({ onLogin }) {
       return
     }
     
-    // For prototype, accept any non-empty credentials
-    onLogin(true)
-    navigate('/') // redirect to Home
+    setLoading(true)
+    try {
+      const result = await authAPI.login(username, password)
+      login(result.user)
+      // Role-based redirect
+      const role = result.user?.role
+      if (role === 'admin') navigate('/admin', { replace: true })
+      else if (role === 'driver') navigate('/driver', { replace: true })
+      else if (role === 'restaurant_staff') navigate('/restaurant', { replace: true })
+      else navigate('/', { replace: true })
+    } catch (err) {
+      setError(err.message || 'Login failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -53,12 +69,12 @@ export default function LoginPage({ onLogin }) {
             />
           </div>
           
-          <button type="submit" className="login-button">
-            Sign In
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
           
           <p className="login-notice">
-            Prototype Mode: Any credentials accepted
+            Demo: Use "student", "faculty", or "admin" with password "password123" or "admin123"
           </p>
         </form>
       </div>

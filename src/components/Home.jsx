@@ -1,8 +1,31 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { LOCATIONS } from '../data/mockData'
+import { locationsAPI } from '../services/api'
 
 export default function Home() {
+  const [locations, setLocations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    loadLocations()
+  }, [])
+
+  async function loadLocations() {
+    try {
+      const data = await locationsAPI.getAll()
+      setLocations(data)
+    } catch (err) {
+      console.error('Failed to load locations:', err)
+      setError('Failed to load dining locations')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) return <div className="page">Loading locations...</div>
+  if (error) return <div className="page"><p className="error">{error}</p></div>
+
   return (
     <div className="page home">
       <section className="hero">
@@ -13,7 +36,7 @@ export default function Home() {
       <section>
         <h3>Dining Locations</h3>
         <div className="locations">
-          {LOCATIONS.map(loc => (
+          {locations.map(loc => (
             <div key={loc.id} className="loc-card">
               <h4>{loc.name}</h4>
               <small>{loc.address} • {loc.hours}</small>
