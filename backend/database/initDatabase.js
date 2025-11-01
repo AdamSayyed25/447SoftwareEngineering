@@ -90,6 +90,7 @@ export async function initDatabase() {
       // Backfill columns if existing DB lacks them (safe no-op if present)
       db.run(`ALTER TABLE orders ADD COLUMN recipient_name TEXT`, () => {});
       db.run(`ALTER TABLE orders ADD COLUMN driver_id TEXT`, () => {});
+      db.run(`ALTER TABLE orders ADD COLUMN tip REAL DEFAULT 0`, () => {});
 
       // Feedback table
       db.run(`CREATE TABLE IF NOT EXISTS feedback (

@@ -1,17 +1,23 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../contexts/CartContext'
 import { useAuth } from '../contexts/AuthContext'
+import { vibrate, HAPTIC_PATTERNS } from '../utils/haptic'
 
 export default function Header() {
   const { items } = useCart()
   const { user, isCustomer, isDriver, isRestaurantStaff, isAdmin, logout } = useAuth()
   const count = items.reduce((s, i) => s + i.qty, 0)
   const navigate = useNavigate()
+  const [logoutIndicator, setLogoutIndicator] = useState(false)
 
   const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
+    vibrate(HAPTIC_PATTERNS.LIGHT)
+    setLogoutIndicator(true)
+    setTimeout(() => {
+      logout()
+      navigate('/login', { replace: true })
+    }, 200)
   }
 
   return (
@@ -55,8 +61,8 @@ export default function Header() {
 
         {/* Logout for all authenticated users */}
         {user && (
-          <button onClick={handleLogout} className="logout-btn">
-            Logout ({user.username})
+          <button onClick={handleLogout} className={`logout-btn ${logoutIndicator ? 'logging-out' : ''}`}>
+            {logoutIndicator ? '✓ Logging Out...' : `Logout (${user.username})`}
           </button>
         )}
       </nav>
