@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authAPI } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
+import { vibrate, HAPTIC_PATTERNS } from '../utils/haptic'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [successIndicator, setSuccessIndicator] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
 
@@ -24,14 +26,18 @@ export default function LoginPage() {
     try {
       const result = await authAPI.login(username, password)
       login(result.user)
-      // Role-based redirect
-      const role = result.user?.role
-      if (role === 'admin') navigate('/admin', { replace: true })
-      else if (role === 'driver') navigate('/driver', { replace: true })
-      else if (role === 'restaurant_staff') navigate('/restaurant', { replace: true })
-      else navigate('/', { replace: true })
+      vibrate(HAPTIC_PATTERNS.LIGHT)
+      setSuccessIndicator(true)
+      setTimeout(() => {
+        const role = result.user?.role
+        if (role === 'admin') navigate('/admin', { replace: true })
+        else if (role === 'driver') navigate('/driver', { replace: true })
+        else if (role === 'restaurant_staff') navigate('/restaurant', { replace: true })
+        else navigate('/', { replace: true })
+      }, 300)
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.')
+      vibrate(HAPTIC_PATTERNS.ERROR)
     } finally {
       setLoading(false)
     }
