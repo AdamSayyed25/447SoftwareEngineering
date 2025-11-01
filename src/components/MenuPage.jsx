@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { menuAPI, locationsAPI } from '../services/api'
 import { useCart } from '../contexts/CartContext'
+import { vibrate, HAPTIC_PATTERNS } from '../utils/haptic'
 
 export default function MenuPage() {
   const { locationId } = useParams()
@@ -9,7 +10,15 @@ export default function MenuPage() {
   const [location, setLocation] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [addedItem, setAddedItem] = useState(null)
   const { add } = useCart()
+
+  function handleAdd(item) {
+    add(item)
+    vibrate(HAPTIC_PATTERNS.LIGHT)
+    setAddedItem(item.id)
+    setTimeout(() => setAddedItem(null), 1500)
+  }
 
   useEffect(() => {
     loadMenu()
@@ -53,7 +62,12 @@ export default function MenuPage() {
               <p className="desc">{item.description}</p>
               <div className="menu-bottom">
                 <strong>${item.price.toFixed(2)}</strong>
-                <button onClick={() => add(item)}>Add to Cart</button>
+                <button 
+                  onClick={() => handleAdd(item)}
+                  className={addedItem === item.id ? 'adding' : ''}
+                >
+                  {addedItem === item.id ? '✓ Added!' : 'Add to Cart'}
+                </button>
               </div>
             </div>
           ))}

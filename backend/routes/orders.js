@@ -12,7 +12,7 @@ const router = express.Router();
 // POST /api/orders - Create a new order
 router.post('/', async (req, res, next) => {
   try {
-    const { items, subtotal, dropOffLocation, recipientName } = req.body;
+    const { items, subtotal, dropOffLocation, recipientName, tip } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Order must contain at least one item' });
@@ -28,16 +28,18 @@ router.post('/', async (req, res, next) => {
 
     const orderId = generateOrderId();
     const now = new Date().toISOString();
+    const tipAmount = tip || 0;
 
     await dbRun(`
-      INSERT INTO orders (id, items, subtotal, drop_off_location, recipient_name, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [orderId, JSON.stringify(items), subtotal, dropOffLocation, recipientName || null, 'pending', now, now]);
+      INSERT INTO orders (id, items, subtotal, drop_off_location, recipient_name, tip, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [orderId, JSON.stringify(items), subtotal, dropOffLocation, recipientName || null, tipAmount, 'pending', now, now]);
 
     const order = {
       id: orderId,
       items,
       subtotal,
+      tip: tipAmount,
       drop: dropOffLocation,
       recipient_name: recipientName || null,
       status: 'pending',
