@@ -3,7 +3,7 @@ import { Order } from '../models/Order.js';
 import Stripe from 'stripe';
 
 // Initialize Stripe (using same key as payment.js)
-const stripe = new Stripe("REMOVED_SECRET");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Simple UUID generator (for prototype)
 function generateOrderId() {

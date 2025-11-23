@@ -16,7 +16,7 @@ This guide will help you set up Stripe payments for the UMBC DoorDash applicatio
 
 2. Create or update the `.env` file in the `backend` directory with your Stripe secret key:
    ```env
-   STRIPE_SECRET_KEY=REMOVED_SECRET
+   STRIPE_SECRET_KEY=your_stripe_secret_key_here
    ```
 
    **Note**: The key provided is for testing/sandbox mode.

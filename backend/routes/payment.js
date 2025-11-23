@@ -9,8 +9,8 @@ try {
   if (!process.env.STRIPE_SECRET_KEY) {
     console.warn('⚠️  STRIPE_SECRET_KEY not found in environment variables. Payment functionality will not work.');
   } else {
-    stripe = new Stripe("REMOVED_SECRET");
-     
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
 
   }
 } catch (err) {
@@ -23,9 +23,9 @@ router.post('/create-payment-intent', async (req, res, next) => {
     if (!stripe) {
 
       console.log("check")
-      return res.status(500).json({ 
-        error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY in backend .env file.' 
-        
+      return res.status(500).json({
+        error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY in backend .env file.'
+
       });
     }
 
@@ -57,8 +57,8 @@ router.post('/create-payment-intent', async (req, res, next) => {
     });
   } catch (err) {
     console.error('Stripe payment intent error:', err);
-    res.status(500).json({ 
-      error: err.message || 'Failed to create payment intent' 
+    res.status(500).json({
+      error: err.message || 'Failed to create payment intent'
     });
   }
 });
@@ -85,8 +85,8 @@ router.post('/confirm', async (req, res, next) => {
     });
   } catch (err) {
     console.error('Stripe payment confirmation error:', err);
-    res.status(500).json({ 
-      error: err.message || 'Failed to confirm payment' 
+    res.status(500).json({
+      error: err.message || 'Failed to confirm payment'
     });
   }
 });
