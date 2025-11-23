@@ -49,11 +49,48 @@ export default function MenuPage() {
   if (loading) return <div className="page">Loading menu...</div>
   if (error) return <div className="page"><p className="error">{error}</p></div>
 
+  if (!location) return <div className="page">Location not found</div>
+
   return (
     <div className="page menu-page">
-      <h2>{location?.name || 'Menu'}</h2>
+      {location.image_url && (
+        <div className="location-banner" style={{ backgroundImage: `url(${location.image_url})` }}>
+          <div className="banner-overlay"></div>
+        </div>
+      )}
+
+      <div className="location-header">
+        <div className="header-content">
+          <h2>{location.name}</h2>
+          <div className="location-meta">
+            <span className="category">{location.category}</span>
+            <span className="dot">•</span>
+            <span>{location.hours}</span>
+            <span className="dot">•</span>
+            <span>{location.address}</span>
+          </div>
+
+          {!location.is_active && (
+            <div className="status-banner closed">
+              Temporarily Closed
+            </div>
+          )}
+
+          {location.description && <p className="description">{location.description}</p>}
+
+          {location.tags && location.tags.length > 0 && (
+            <div className="tags-list">
+              {location.tags.map(t => <span key={t} className="tag">{t}</span>)}
+            </div>
+          )}
+        </div>
+      </div>
+
       {menu.length === 0 ? (
-        <p>No menu items available for this location.</p>
+        <div className="empty-menu">
+          <p>No menu items available for this location.</p>
+          {!location.is_active && <p>Check back later when we reopen!</p>}
+        </div>
       ) : (
         <div className="menu-grid">
           {menu.map(item => (
@@ -62,11 +99,12 @@ export default function MenuPage() {
               <p className="desc">{item.description}</p>
               <div className="menu-bottom">
                 <strong>${item.price.toFixed(2)}</strong>
-                <button 
+                <button
                   onClick={() => handleAdd(item)}
                   className={addedItem === item.id ? 'adding' : ''}
+                  disabled={!location.is_active}
                 >
-                  {addedItem === item.id ? '✓ Added!' : 'Add to Cart'}
+                  {!location.is_active ? 'Closed' : (addedItem === item.id ? '✓ Added!' : 'Add to Cart')}
                 </button>
               </div>
             </div>

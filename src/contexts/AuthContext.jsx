@@ -23,9 +23,20 @@ export default function AuthProvider({ children }) {
 
   async function verifyToken() {
     try {
+      // First verify the token is valid
       const response = await authAPI.verify();
       if (response.valid) {
-        setUser(response.user);
+        // If valid, fetch the latest user profile to ensure we have up-to-date data
+        // (e.g., in case restaurant assignment changed)
+        try {
+          const userProfile = await authAPI.getProfile();
+          setUser(userProfile);
+        } catch (profileErr) {
+          console.warn('Failed to fetch fresh profile, falling back to token data', profileErr);
+          setUser(response.user);
+        }
+      } else {
+        logout();
       }
     } catch (err) {
       console.error('Token verification failed:', err);

@@ -61,6 +61,10 @@ export const authAPI = {
     return apiRequest('/auth/verify');
   },
 
+  getProfile: async () => {
+    return apiRequest('/auth/me');
+  },
+
   logout: () => {
     localStorage.removeItem('authToken');
   },
@@ -92,16 +96,16 @@ export const authAPI = {
 // Locations
 export const locationsAPI = {
   getAll: () => apiRequest('/locations'),
-  
+
   getById: (id) => apiRequest(`/locations/${id}`),
-  
+
   getDropoffs: () => apiRequest('/locations/dropoffs/all')
 };
 
 // Menu
 export const menuAPI = {
   getByLocation: (locationId) => apiRequest(`/menu/${locationId}`),
-  
+
   getAll: () => apiRequest('/menu')
 };
 
@@ -158,7 +162,7 @@ export const driverAPI = {
 // Restaurant API
 export const restaurantAPI = {
   getMenu: () => apiRequest('/restaurant/menu'),
-  
+
   addMenuItem: (item) => apiRequest('/restaurant/menu', {
     method: 'POST',
     body: JSON.stringify(item)
@@ -189,12 +193,35 @@ export const adminAPI = {
 
   getFeedback: () => apiRequest('/admin/feedback'),
 
-  getLocations: () => apiRequest('/admin/locations')
+  getLocations: () => apiRequest('/admin/locations'),
+
+  updateUser: (id, data) => apiRequest(`/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+
+  resetUserPassword: (id) => apiRequest(`/admin/users/${id}/reset-password`, {
+    method: 'POST'
+  }),
+
+  createLocation: (data) => apiRequest('/admin/locations', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+
+  updateLocation: (id, data) => apiRequest(`/admin/locations/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+
+  deleteLocation: (id) => apiRequest(`/admin/locations/${id}`, {
+    method: 'DELETE'
+  })
 };
 
 // Payment API
 export const paymentAPI = {
-  createPaymentIntent: (amount, currency = 'usd', metadata = {}) => 
+  createPaymentIntent: (amount, currency = 'usd', metadata = {}) =>
     apiRequest('/payment/create-payment-intent', {
       method: 'POST',
       body: JSON.stringify({ amount, currency, metadata })

@@ -13,12 +13,10 @@ async function seedDatabase() {
     await connectMongoDB();
 
     // Check if data already exists
+    // Check if data already exists
     const userCount = await User.countDocuments();
     if (userCount > 0) {
-      console.log('⚠️  Database already seeded, skipping...');
-      console.log(`   Found ${userCount} existing users\n`);
-      await disconnectMongoDB();
-      return;
+      console.log(`ℹ️  Found ${userCount} existing users. Checking for missing default users...`);
     }
 
     // Hash password for all users (password123)
@@ -37,9 +35,17 @@ async function seedDatabase() {
     ];
 
     for (const userData of users) {
-      const user = new User(userData);
-      await user.save();
-      console.log(`   ✓ Created user: ${userData.username} (${userData.role})`);
+      const existingUser = await User.findOne({
+        $or: [{ email: userData.email }, { username: userData.username }]
+      });
+
+      if (!existingUser) {
+        const user = new User(userData);
+        await user.save();
+        console.log(`   ✓ Created user: ${userData.username} (${userData.role})`);
+      } else {
+        console.log(`   - User already exists: ${userData.username}`);
+      }
     }
 
     // Seed locations
@@ -51,9 +57,14 @@ async function seedDatabase() {
     ];
 
     for (const locData of locations) {
-      const location = new Location(locData);
-      await location.save();
-      console.log(`   ✓ Created location: ${locData.name} (${locData.id})`);
+      const existingLoc = await Location.findOne({ id: locData.id });
+      if (!existingLoc) {
+        const location = new Location(locData);
+        await location.save();
+        console.log(`   ✓ Created location: ${locData.name} (${locData.id})`);
+      } else {
+        console.log(`   - Location already exists: ${locData.name}`);
+      }
     }
 
     // Seed menu items
@@ -68,9 +79,14 @@ async function seedDatabase() {
     ];
 
     for (const itemData of menuItems) {
-      const menuItem = new MenuItem(itemData);
-      await menuItem.save();
-      console.log(`   ✓ Created menu item: ${itemData.name} ($${itemData.price})`);
+      const existingItem = await MenuItem.findOne({ id: itemData.id });
+      if (!existingItem) {
+        const menuItem = new MenuItem(itemData);
+        await menuItem.save();
+        console.log(`   ✓ Created menu item: ${itemData.name} ($${itemData.price})`);
+      } else {
+        console.log(`   - Menu item already exists: ${itemData.name}`);
+      }
     }
 
     // Seed drop-off locations
@@ -82,9 +98,14 @@ async function seedDatabase() {
     ];
 
     for (const dropData of dropOffs) {
-      const dropOff = new DropOffLocation(dropData);
-      await dropOff.save();
-      console.log(`   ✓ Created drop-off: ${dropData.name} (${dropData.code})`);
+      const existingDrop = await DropOffLocation.findOne({ code: dropData.code });
+      if (!existingDrop) {
+        const dropOff = new DropOffLocation(dropData);
+        await dropOff.save();
+        console.log(`   ✓ Created drop-off: ${dropData.name} (${dropData.code})`);
+      } else {
+        console.log(`   - Drop-off already exists: ${dropData.name}`);
+      }
     }
 
     console.log('\n✅ Database seeded successfully!');

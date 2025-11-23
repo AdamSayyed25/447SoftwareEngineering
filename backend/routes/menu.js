@@ -9,9 +9,10 @@ router.get('/:locationId', async (req, res, next) => {
     const menu = await MenuItem.find({ location_id: req.params.locationId })
       .sort({ name: 1 })
       .lean();
-    
+
     if (menu.length === 0) {
-      return res.status(404).json({ error: 'Menu not found for this location' });
+      // Return empty array instead of 404 to allow frontend to show "No items" message
+      return res.json([]);
     }
 
     // Format response to match frontend expectations
@@ -36,7 +37,7 @@ router.get('/', async (req, res, next) => {
     const menu = await MenuItem.find()
       .sort({ location_id: 1, name: 1 })
       .lean();
-    
+
     const formattedMenu = menu.map(item => ({
       id: item.id,
       location_id: item.location_id,

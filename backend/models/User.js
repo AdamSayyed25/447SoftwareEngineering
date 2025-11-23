@@ -49,6 +49,14 @@ const userSchema = new mongoose.Schema({
     type: String, // MenuItem ID
     ref: 'MenuItem'
   }],
+  is_active: {
+    type: Boolean,
+    default: true
+  },
+  last_login: {
+    type: Date,
+    default: null
+  },
   created_at: {
     type: Date,
     default: Date.now

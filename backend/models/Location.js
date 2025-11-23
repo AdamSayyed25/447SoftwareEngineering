@@ -18,7 +18,30 @@ const locationSchema = new mongoose.Schema({
   address: {
     type: String,
     required: true
-  }
+  },
+  image_url: {
+    type: String,
+    default: ''
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  category: {
+    type: String,
+    default: 'Dining'
+  },
+  is_active: {
+    type: Boolean,
+    default: true
+  },
+  contact_email: {
+    type: String,
+    default: ''
+  },
+  tags: [{
+    type: String
+  }]
 }, {
   timestamps: true
 });

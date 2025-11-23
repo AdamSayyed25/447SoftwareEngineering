@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User.js';
+import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -229,7 +230,7 @@ router.post('/google/register', async (req, res, next) => {
     const usernameFromEmail = googleUser.email.split('@')[0];
     let username = usernameFromEmail;
     let usernameExists = await User.findOne({ username });
-    
+
     // If username exists, append random number
     if (usernameExists) {
       username = `${usernameFromEmail}${Math.floor(Math.random() * 10000)}`;
@@ -282,6 +283,8 @@ router.post('/google/register', async (req, res, next) => {
   }
 });
 
+
+
 // POST /api/auth/google/login - Sign in with Google
 router.post('/google/login', async (req, res, next) => {
   try {
@@ -303,7 +306,7 @@ router.post('/google/login', async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Account not found. Please create an account first.',
         requiresRegistration: true
       });
@@ -347,5 +350,24 @@ router.post('/google/login', async (req, res, next) => {
   }
 });
 
-export default router;
+// GET /api/auth/me - Get current user profile
+router.get('/me', verifyToken, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password_hash');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
+    res.json({
+      id: user._id.toString(),
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      restaurant_location_id: user.restaurant_location_id
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;

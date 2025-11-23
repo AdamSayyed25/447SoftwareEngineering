@@ -10,10 +10,9 @@ router.get('/', async (req, res, next) => {
     const locations = await Location.find().sort({ name: 1 }).lean();
     // Convert _id to id for consistency with frontend
     const formattedLocations = locations.map(loc => ({
+      ...loc,
       id: loc.id,
-      name: loc.name,
-      hours: loc.hours,
-      address: loc.address
+      is_active: loc.is_active !== undefined ? loc.is_active : true
     }));
     res.json(formattedLocations);
   } catch (err) {
@@ -25,16 +24,15 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const location = await Location.findOne({ id: req.params.id }).lean();
-    
+
     if (!location) {
       return res.status(404).json({ error: 'Location not found' });
     }
 
     res.json({
+      ...location,
       id: location.id,
-      name: location.name,
-      hours: location.hours,
-      address: location.address
+      is_active: location.is_active !== undefined ? location.is_active : true
     });
   } catch (err) {
     next(err);
