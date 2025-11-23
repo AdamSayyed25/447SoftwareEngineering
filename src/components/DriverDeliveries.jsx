@@ -58,6 +58,18 @@ export default function DriverDeliveries() {
                 </div>
                 <div>
                   <button className="accept-btn" onClick={async () => { await driverAPI.deliverOrder(order.id); await load(); }}>Mark as Delivered</button>
+                  <button
+                    className="btn-secondary"
+                    style={{ marginLeft: 8 }}
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to unassign this order?')) {
+                        await driverAPI.declineOrder(order.id);
+                        await load();
+                      }
+                    }}
+                  >
+                    Unassign
+                  </button>
                 </div>
               </div>
             ))}

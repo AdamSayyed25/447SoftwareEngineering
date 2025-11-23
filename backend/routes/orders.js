@@ -1,5 +1,9 @@
 import express from 'express';
-import { dbRun, dbGet, dbAll } from '../database/initDatabase.js';
+import { Order } from '../models/Order.js';
+import Stripe from 'stripe';
+
+// Initialize Stripe (using same key as payment.js)
+const stripe = new Stripe("REMOVED_SECRET");
 
 // Simple UUID generator (for prototype)
 function generateOrderId() {
@@ -8,11 +12,10 @@ function generateOrderId() {
 
 const router = express.Router();
 
-
 // POST /api/orders - Create a new order
 router.post('/', async (req, res, next) => {
   try {
-    const { items, subtotal, dropOffLocation, recipientName, tip } = req.body;
+    const { items, subtotal, dropOffLocation, recipientName, tip, paymentIntentId } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Order must contain at least one item' });
@@ -27,26 +30,53 @@ router.post('/', async (req, res, next) => {
     }
 
     const orderId = generateOrderId();
-    const now = new Date().toISOString();
+    const now = new Date();
     const tipAmount = tip || 0;
 
-    await dbRun(`
-      INSERT INTO orders (id, items, subtotal, drop_off_location, recipient_name, tip, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [orderId, JSON.stringify(items), subtotal, dropOffLocation, recipientName || null, tipAmount, 'pending', now, now]);
+    let paymentMethodDetails = null;
+    if (paymentIntentId) {
+      try {
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (paymentIntent.payment_method) {
+          const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+          paymentMethodDetails = {
+            brand: paymentMethod.card?.brand,
+            last4: paymentMethod.card?.last4
+          };
+        }
+      } catch (error) {
+        console.error('Failed to retrieve payment details:', error);
+      }
+    }
 
-    const order = {
+    const order = new Order({
       id: orderId,
       items,
       subtotal,
-      tip: tipAmount,
-      drop: dropOffLocation,
+      drop_off_location: dropOffLocation,
       recipient_name: recipientName || null,
+      tip: tipAmount,
+      payment_intent_id: paymentIntentId || null,
+      payment_method_details: paymentMethodDetails,
       status: 'pending',
-      createdAt: now
+      created_at: now,
+      updated_at: now
+    });
+
+    await order.save();
+
+    const responseOrder = {
+      id: order.id,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip,
+      drop: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      status: order.status,
+      createdAt: order.created_at.toISOString()
     };
 
-    res.status(201).json(order);
+    res.status(201).json(responseOrder);
   } catch (err) {
     next(err);
   }
@@ -55,19 +85,28 @@ router.post('/', async (req, res, next) => {
 // GET /api/orders/:orderId - Get specific order
 router.get('/:orderId', async (req, res, next) => {
   try {
-    const order = await dbGet('SELECT * FROM orders WHERE id = ?', [req.params.orderId]);
-    
+    const order = await Order.findOne({ id: req.params.orderId }).lean();
+
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Parse JSON fields
-    const parsedOrder = {
-      ...order,
-      items: JSON.parse(order.items)
+    // Format response
+    const formattedOrder = {
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
     };
 
-    res.json(parsedOrder);
+    res.json(formattedOrder);
   } catch (err) {
     next(err);
   }
@@ -76,15 +115,27 @@ router.get('/:orderId', async (req, res, next) => {
 // GET /api/orders - Get all orders (for demo purposes)
 router.get('/', async (req, res, next) => {
   try {
-    const orders = await dbAll('SELECT * FROM orders ORDER BY created_at DESC LIMIT 50');
-    
-    // Parse JSON fields for all orders
-    const parsedOrders = orders.map(order => ({
-      ...order,
-      items: JSON.parse(order.items)
+    const orders = await Order.find()
+      .sort({ created_at: -1 })
+      .limit(50)
+      .lean();
+
+    // Format response
+    const formattedOrders = orders.map(order => ({
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
     }));
 
-    res.json(parsedOrders);
+    res.json(formattedOrders);
   } catch (err) {
     next(err);
   }
@@ -95,28 +146,47 @@ router.patch('/:orderId/status', async (req, res, next) => {
   try {
     const { status } = req.body;
     const validStatuses = ['pending', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'];
-    
+
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    const now = new Date().toISOString();
-    
-    await dbRun(
-      'UPDATE orders SET status = ?, updated_at = ? WHERE id = ?',
-      [status, now, req.params.orderId]
+    const updateData = {
+      status,
+      updated_at: new Date()
+    };
+
+    // Update specific timestamps based on status
+    if (status === 'preparing') updateData.prepared_at = new Date();
+    if (status === 'out-for-delivery') updateData.picked_up_at = new Date();
+    if (status === 'delivered') updateData.delivered_at = new Date();
+    if (status === 'cancelled') updateData.cancelled_at = new Date();
+
+    const order = await Order.findOneAndUpdate(
+      { id: req.params.orderId },
+      updateData,
+      { new: true, lean: true }
     );
 
-    const order = await dbGet('SELECT * FROM orders WHERE id = ?', [req.params.orderId]);
-    
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    res.json({
-      ...order,
-      items: JSON.parse(order.items)
-    });
+    const formattedOrder = {
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
+    };
+
+    res.json(formattedOrder);
   } catch (err) {
     next(err);
   }

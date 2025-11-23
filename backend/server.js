@@ -12,6 +12,7 @@ import authRouter from './routes/auth.js';
 import restaurantRouter from './routes/restaurant.js';
 import driverRouter from './routes/driver.js';
 import adminRouter from './routes/admin.js';
+import paymentRouter from './routes/payment.js';
 import { sanitizeBody } from './middleware/validation.js';
 
 dotenv.config();
@@ -52,6 +53,7 @@ app.use('/api/feedback', feedbackRouter);
 app.use('/api/restaurant', restaurantRouter);
 app.use('/api/driver', driverRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/payment', paymentRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

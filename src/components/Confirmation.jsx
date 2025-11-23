@@ -23,11 +23,11 @@ export default function Confirmation() {
   return (
     <div className="page confirmation-page">
       <h2>Order Confirmed!</h2>
-      
+
       <div className={`order-confirmed-card ${isVisible ? 'visible' : ''}`}>
         <div className="success-icon success-bounce">✓</div>
         <p className="confirmation-message">Purchase Complete</p>
-        
+
         <div className="order-info">
           <div className="info-row">
             <span className="info-label">Order ID:</span>
@@ -59,6 +59,9 @@ export default function Confirmation() {
         <div className="confirmation-actions">
           <Link to={`/order/${order.id}`} className="track-order-btn">
             Track Your Order →
+          </Link>
+          <Link to="/" className="home-btn" style={{ display: 'block', marginTop: '10px', textAlign: 'center' }}>
+            Back to Home
           </Link>
           <Link to="/feedback" className="feedback-link">Leave Feedback</Link>
         </div>

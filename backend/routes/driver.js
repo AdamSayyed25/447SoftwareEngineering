@@ -1,5 +1,5 @@
 import express from 'express';
-import { dbRun, dbGet, dbAll } from '../database/initDatabase.js';
+import { Order } from '../models/Order.js';
 import { verifyToken, requireRole, ROLES } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -7,18 +7,32 @@ const router = express.Router();
 // GET /api/driver/orders - Get available orders for pickup
 router.get('/orders', verifyToken, requireRole(ROLES.DRIVER, ROLES.ADMIN), async (req, res, next) => {
   try {
-    // Orders available for pickup (unassigned)
-    const orders = await dbAll(
-      'SELECT * FROM orders WHERE status IN (?, ?) AND (driver_id IS NULL OR driver_id = "") ORDER BY created_at DESC',
-      ['pending', 'preparing']
-    );
+    // Orders available for pickup (unassigned, status pending or preparing)
+    const orders = await Order.find({
+      status: { $in: ['pending', 'preparing'] },
+      $or: [
+        { driver_id: null },
+        { driver_id: '' }
+      ]
+    })
+    .sort({ created_at: -1 })
+    .lean();
 
-    const parsedOrders = orders.map(order => ({
-      ...order,
-      items: JSON.parse(order.items)
+    const formattedOrders = orders.map(order => ({
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
     }));
 
-    res.json(parsedOrders);
+    res.json(formattedOrders);
   } catch (err) {
     next(err);
   }
@@ -31,23 +45,31 @@ router.post('/orders/:orderId/accept', verifyToken, requireRole(ROLES.DRIVER, RO
     const driverId = req.user.username;
 
     // Get the order
-    const order = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
+    const order = await Order.findOne({ id: orderId });
     
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
     // Assign to driver and set status to out-for-delivery
-    const now = new Date().toISOString();
-    await dbRun(
-      'UPDATE orders SET driver_id = ?, status = ?, updated_at = ? WHERE id = ?',
-      [driverId, 'out-for-delivery', now, orderId]
-    );
+    order.driver_id = driverId;
+    order.status = 'out-for-delivery';
+    order.updated_at = new Date();
+    
+    await order.save();
 
-    const updated = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
     res.json({
-      ...updated,
-      items: JSON.parse(updated.items),
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at,
       driver: driverId
     });
   } catch (err) {
@@ -61,7 +83,7 @@ router.post('/orders/:orderId/decline', verifyToken, requireRole(ROLES.DRIVER, R
     const { orderId } = req.params;
     const driverId = req.user.username;
 
-    const order = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
+    const order = await Order.findOne({ id: orderId });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     // Only the assigned driver (or admin) can decline/unassign
@@ -69,10 +91,25 @@ router.post('/orders/:orderId/decline', verifyToken, requireRole(ROLES.DRIVER, R
       return res.status(403).json({ error: 'Not authorized' });
     }
 
-    const now = new Date().toISOString();
-    await dbRun('UPDATE orders SET driver_id = NULL, status = ?, updated_at = ? WHERE id = ?', ['pending', now, orderId]);
-    const updated = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
-    res.json({ ...updated, items: JSON.parse(updated.items) });
+    order.driver_id = null;
+    order.status = 'pending';
+    order.updated_at = new Date();
+    
+    await order.save();
+
+    res.json({
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
+    });
   } catch (err) {
     next(err);
   }
@@ -84,23 +121,30 @@ router.post('/orders/:orderId/deliver', verifyToken, requireRole(ROLES.DRIVER, R
     const { orderId } = req.params;
 
     // Get the order
-    const order = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
+    const order = await Order.findOne({ id: orderId });
     
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
     // Update order status to delivered
-    const now = new Date().toISOString();
-    await dbRun(
-      'UPDATE orders SET status = ?, updated_at = ? WHERE id = ?',
-      ['delivered', now, orderId]
-    );
+    order.status = 'delivered';
+    order.updated_at = new Date();
+    
+    await order.save();
 
-    const updated = await dbGet('SELECT * FROM orders WHERE id = ?', [orderId]);
     res.json({
-      ...updated,
-      items: JSON.parse(updated.items)
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
     });
   } catch (err) {
     next(err);
@@ -111,12 +155,39 @@ router.post('/orders/:orderId/deliver', verifyToken, requireRole(ROLES.DRIVER, R
 router.get('/my-deliveries', verifyToken, requireRole(ROLES.DRIVER, ROLES.ADMIN), async (req, res, next) => {
   try {
     const driverId = req.user.username;
-    const current = await dbAll('SELECT * FROM orders WHERE driver_id = ? AND status != ? ORDER BY updated_at DESC', [driverId, 'delivered']);
-    const completed = await dbAll('SELECT * FROM orders WHERE driver_id = ? AND status = ? ORDER BY updated_at DESC', [driverId, 'delivered']);
+    
+    const current = await Order.find({
+      driver_id: driverId,
+      status: { $ne: 'delivered' }
+    })
+    .sort({ updated_at: -1 })
+    .lean();
 
-    const mapParse = (arr) => arr.map(o => ({ ...o, items: JSON.parse(o.items) }));
+    const completed = await Order.find({
+      driver_id: driverId,
+      status: 'delivered'
+    })
+    .sort({ updated_at: -1 })
+    .lean();
 
-    res.json({ current: mapParse(current), completed: mapParse(completed) });
+    const formatOrder = (o) => ({
+      id: o.id,
+      user_id: o.user_id ? o.user_id.toString() : null,
+      items: o.items,
+      subtotal: o.subtotal,
+      tip: o.tip || 0,
+      drop_off_location: o.drop_off_location,
+      recipient_name: o.recipient_name,
+      driver_id: o.driver_id,
+      status: o.status,
+      created_at: o.created_at,
+      updated_at: o.updated_at
+    });
+
+    res.json({
+      current: current.map(formatOrder),
+      completed: completed.map(formatOrder)
+    });
   } catch (err) {
     next(err);
   }
@@ -126,27 +197,40 @@ router.get('/my-deliveries', verifyToken, requireRole(ROLES.DRIVER, ROLES.ADMIN)
 router.get('/stats', verifyToken, requireRole(ROLES.DRIVER, ROLES.ADMIN), async (req, res, next) => {
   try {
     const driverId = req.user.username;
-    const delivered = await dbAll('SELECT * FROM orders WHERE driver_id = ? AND status = ? ORDER BY updated_at DESC', [driverId, 'delivered']);
-    const parse = delivered.map(o => ({ ...o, items: JSON.parse(o.items) }));
+    const delivered = await Order.find({
+      driver_id: driverId,
+      status: 'delivered'
+    })
+    .sort({ updated_at: -1 })
+    .lean();
 
     // Earnings model: base $5 + 10% of subtotal per delivery (demo)
     const earningFor = (o) => 5 + 0.10 * Number(o.subtotal || 0);
-    const totalEarnings = parse.reduce((s, o) => s + earningFor(o), 0);
-    const deliveriesCompleted = parse.length;
+    const totalEarnings = delivered.reduce((s, o) => s + earningFor(o), 0);
+    const deliveriesCompleted = delivered.length;
 
     // Avg delivery time (minutes): updated_at - created_at
-    const avgDeliveryTimeMin = parse.length > 0 ? (
-      parse.reduce((s, o) => s + ((new Date(o.updated_at) - new Date(o.created_at)) / 60000), 0) / parse.length
+    const avgDeliveryTimeMin = delivered.length > 0 ? (
+      delivered.reduce((s, o) => {
+        const created = new Date(o.created_at);
+        const updated = new Date(o.updated_at || o.created_at);
+        return s + ((updated - created) / 60000);
+      }, 0) / delivered.length
     ) : 0;
 
     // Weekly earnings breakdown (last 7 days by date)
     const byDay = {};
-    for (const o of parse) {
-      const day = new Date(o.updated_at || o.created_at).toISOString().slice(0,10);
+    for (const o of delivered) {
+      const day = new Date(o.updated_at || o.created_at).toISOString().slice(0, 10);
       byDay[day] = (byDay[day] || 0) + earningFor(o);
     }
 
-    const recent = parse.slice(0, 5).map(o => ({ id: o.id, total: o.subtotal, drop: o.drop_off_location, date: o.updated_at || o.created_at }));
+    const recent = delivered.slice(0, 5).map(o => ({
+      id: o.id,
+      total: o.subtotal,
+      drop: o.drop_off_location,
+      date: o.updated_at || o.created_at
+    }));
 
     res.json({
       totalEarnings: Number(totalEarnings.toFixed(2)),
@@ -161,4 +245,3 @@ router.get('/stats', verifyToken, requireRole(ROLES.DRIVER, ROLES.ADMIN), async 
 });
 
 export default router;
-

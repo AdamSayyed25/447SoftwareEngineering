@@ -35,6 +35,17 @@ async function apiRequest(endpoint, options = {}) {
 
 // Authentication
 export const authAPI = {
+  register: async (email, username, password) => {
+    const data = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, username, password })
+    });
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+    }
+    return data;
+  },
+
   login: async (username, password) => {
     const data = await apiRequest('/auth/login', {
       method: 'POST',
@@ -52,6 +63,29 @@ export const authAPI = {
 
   logout: () => {
     localStorage.removeItem('authToken');
+  },
+
+  // Google OAuth methods
+  googleRegister: async (credential) => {
+    const data = await apiRequest('/auth/google/register', {
+      method: 'POST',
+      body: JSON.stringify({ credential })
+    });
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+    }
+    return data;
+  },
+
+  googleLogin: async (credential) => {
+    const data = await apiRequest('/auth/google/login', {
+      method: 'POST',
+      body: JSON.stringify({ credential })
+    });
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+    }
+    return data;
   }
 };
 
@@ -156,5 +190,20 @@ export const adminAPI = {
   getFeedback: () => apiRequest('/admin/feedback'),
 
   getLocations: () => apiRequest('/admin/locations')
+};
+
+// Payment API
+export const paymentAPI = {
+  createPaymentIntent: (amount, currency = 'usd', metadata = {}) => 
+    apiRequest('/payment/create-payment-intent', {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency, metadata })
+    }),
+
+  confirmPayment: (paymentIntentId) =>
+    apiRequest('/payment/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ paymentIntentId })
+    })
 };
 

@@ -7,6 +7,7 @@ import Checkout from './components/Checkout'
 import Confirmation from './components/Confirmation'
 import Feedback from './components/Feedback'
 import LoginPage from './components/LoginPage'
+import RegisterPage from './components/RegisterPage'
 import DriverDashboard from './components/DriverDashboard'
 import DriverDeliveries from './components/DriverDeliveries'
 import DriverStats from './components/DriverStats'
@@ -30,6 +31,7 @@ export default function App() {
       <CartProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/*" element={<ProtectedLayout />} />
         </Routes>
       </CartProvider>

@@ -1,5 +1,6 @@
 import express from 'express';
-import { dbRun, dbGet, dbAll } from '../database/initDatabase.js';
+import { MenuItem } from '../models/MenuItem.js';
+import { Order } from '../models/Order.js';
 import { verifyToken, requireRole, ROLES } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -18,12 +19,20 @@ router.get('/menu', verifyToken, requireRole(ROLES.RESTAURANT_STAFF, ROLES.ADMIN
       return res.status(400).json({ error: 'Location not specified' });
     }
 
-    const menu = await dbAll(
-      'SELECT * FROM menu_items WHERE location_id = ? ORDER BY name',
-      [locationId]
-    );
+    const menu = await MenuItem.find({ location_id: locationId })
+      .sort({ name: 1 })
+      .lean();
 
-    res.json(menu);
+    const formattedMenu = menu.map(item => ({
+      id: item.id,
+      location_id: item.location_id,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category
+    }));
+
+    res.json(formattedMenu);
   } catch (err) {
     next(err);
   }
@@ -45,14 +54,31 @@ router.post('/menu', verifyToken, requireRole(ROLES.RESTAURANT_STAFF, ROLES.ADMI
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    await dbRun(
-      'INSERT INTO menu_items (id, location_id, name, description, price, category) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, locationId, name, description || '', price, category || 'main']
-    );
+    const menuItem = new MenuItem({
+      id,
+      location_id: locationId,
+      name,
+      description: description || '',
+      price,
+      category: category || 'main'
+    });
 
-    const newItem = await dbGet('SELECT * FROM menu_items WHERE id = ?', [id]);
-    res.status(201).json(newItem);
+    await menuItem.save();
+
+    const formattedItem = {
+      id: menuItem.id,
+      location_id: menuItem.location_id,
+      name: menuItem.name,
+      description: menuItem.description,
+      price: menuItem.price,
+      category: menuItem.category
+    };
+
+    res.status(201).json(formattedItem);
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Menu item with this ID already exists' });
+    }
     next(err);
   }
 });
@@ -65,19 +91,37 @@ router.put('/menu/:itemId', verifyToken, requireRole(ROLES.RESTAURANT_STAFF, ROL
 
     // Verify item belongs to user's location
     if (req.user.role === ROLES.RESTAURANT_STAFF) {
-      const item = await dbGet('SELECT * FROM menu_items WHERE id = ?', [itemId]);
+      const item = await MenuItem.findOne({ id: itemId }).lean();
       if (!item || item.location_id !== req.user.restaurant_location_id) {
         return res.status(403).json({ error: 'Not authorized to modify this item' });
       }
     }
 
-    await dbRun(
-      'UPDATE menu_items SET name = ?, description = ?, price = ?, category = ? WHERE id = ?',
-      [name, description || '', price, category || 'main', itemId]
+    const updated = await MenuItem.findOneAndUpdate(
+      { id: itemId },
+      {
+        name,
+        description: description || '',
+        price,
+        category: category || 'main'
+      },
+      { new: true, lean: true }
     );
 
-    const updated = await dbGet('SELECT * FROM menu_items WHERE id = ?', [itemId]);
-    res.json(updated);
+    if (!updated) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+
+    const formattedItem = {
+      id: updated.id,
+      location_id: updated.location_id,
+      name: updated.name,
+      description: updated.description,
+      price: updated.price,
+      category: updated.category
+    };
+
+    res.json(formattedItem);
   } catch (err) {
     next(err);
   }
@@ -90,13 +134,18 @@ router.delete('/menu/:itemId', verifyToken, requireRole(ROLES.RESTAURANT_STAFF, 
 
     // Verify item belongs to user's location
     if (req.user.role === ROLES.RESTAURANT_STAFF) {
-      const item = await dbGet('SELECT * FROM menu_items WHERE id = ?', [itemId]);
+      const item = await MenuItem.findOne({ id: itemId }).lean();
       if (!item || item.location_id !== req.user.restaurant_location_id) {
         return res.status(403).json({ error: 'Not authorized to delete this item' });
       }
     }
 
-    await dbRun('DELETE FROM menu_items WHERE id = ?', [itemId]);
+    const deleted = await MenuItem.findOneAndDelete({ id: itemId });
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -119,26 +168,38 @@ router.get('/orders', verifyToken, requireRole(ROLES.RESTAURANT_STAFF, ROLES.ADM
 
     // Get orders that have items from this restaurant
     // Note: This is simplified - in production, you'd need to track which restaurant in order_items
-    const orders = await dbAll(`
-      SELECT o.* FROM orders o
-      WHERE EXISTS (
-        SELECT 1 FROM menu_items m
-        WHERE m.location_id = ?
-      )
-      ORDER BY o.created_at DESC
-      LIMIT 50
-    `, [locationId]);
+    // For now, we'll get all orders and filter by location (simplified approach)
+    const orders = await Order.find()
+      .sort({ created_at: -1 })
+      .limit(50)
+      .lean();
 
-    const parsedOrders = orders.map(order => ({
-      ...order,
-      items: JSON.parse(order.items)
+    // Filter orders that have items from this location
+    const filteredOrders = orders.filter(order => {
+      if (!order.items || !Array.isArray(order.items)) return false;
+      // Check if any item in the order matches items from this location
+      // In production, you'd have a better way to track this
+      return true; // Simplified for now
+    });
+
+    const formattedOrders = filteredOrders.map(order => ({
+      id: order.id,
+      user_id: order.user_id ? order.user_id.toString() : null,
+      items: order.items,
+      subtotal: order.subtotal,
+      tip: order.tip || 0,
+      drop_off_location: order.drop_off_location,
+      recipient_name: order.recipient_name,
+      driver_id: order.driver_id,
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at
     }));
 
-    res.json(parsedOrders);
+    res.json(formattedOrders);
   } catch (err) {
     next(err);
   }
 });
 
 export default router;
-

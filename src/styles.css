@@ -72,11 +72,15 @@ body {
   margin-bottom: 24px;
   letter-spacing: 1px;
 }
-.locations { display: flex; gap: 16px; flex-wrap: wrap; }
+.locations { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+  gap: 16px; 
+}
 .loc-card { 
   border: 2px solid rgba(255, 215, 0, 0.3); 
   padding: 20px; 
-  width: 280px; 
+  width: 100%; 
   border-radius: 12px;
   background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
   transition: all 0.3s ease;
@@ -1049,6 +1053,7 @@ input:focus, textarea:focus, select:focus {
   border: 2px solid rgba(255, 215, 0, 0.2);
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
 }
 
 .login-title {
@@ -1075,12 +1080,18 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
+}
+
+.login-form * {
+  box-sizing: border-box;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .form-group label {
@@ -1088,6 +1099,7 @@ input:focus, textarea:focus, select:focus {
   color: #FFD700;
   font-size: 14px;
   letter-spacing: 0.5px;
+  display: block;
 }
 
 .form-group input {
@@ -1098,6 +1110,26 @@ input:focus, textarea:focus, select:focus {
   background: #0a0a0a;
   color: #fff;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  min-width: 0;
+}
+
+.form-group input[type="email"],
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Ensure inputs are always visible */
+.login-form input,
+.login-form button {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
 }
 
 .form-group input::placeholder {
@@ -1119,6 +1151,30 @@ input:focus, textarea:focus, select:focus {
   border: 1px solid rgba(255, 0, 0, 0.3);
   font-size: 14px;
   text-align: center;
+  margin-bottom: 16px;
+}
+
+.login-success {
+  background: linear-gradient(135deg, rgba(0, 200, 0, 0.2) 0%, rgba(0, 150, 0, 0.2) 100%);
+  color: #50c878;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.login-notice a {
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.login-notice a:hover {
+  text-decoration: underline;
+  color: #FFA500;
 }
 
 .login-button {
@@ -1153,6 +1209,42 @@ input:focus, textarea:focus, select:focus {
   margin: 0;
   font-style: italic;
   padding-top: 8px;
+}
+
+/* Divider for OR separator */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  text-align: center;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.divider span {
+  padding: 0 16px;
+  color: var(--gray-light);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Google Sign-In Button Container */
+#google-signin-btn,
+#google-register-btn {
+  width: 100%;
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+#google-signin-btn iframe,
+#google-register-btn iframe {
+  margin: 0 auto !important;
 }
 /* Dasher Dashboard Styles */
 .dasher-dashboard { max-width: 1200px; margin: 0 auto; }
@@ -1421,6 +1513,92 @@ input:focus, textarea:focus, select:focus {
   font-size: 18px;
 }
 
+/* Payment Section Styles */
+.payment-section {
+  margin: 24px 0;
+  padding: 20px;
+  background: rgba(255, 215, 0, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+.payment-section h4 {
+  color: var(--gold);
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.payment-element-wrapper {
+  margin-top: 16px;
+}
+
+/* Stripe Elements Styling */
+.payment-element-wrapper .StripeElement {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #fff;
+}
+
+.payment-element-wrapper .StripeElement--focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.payment-element-wrapper .StripeElement--invalid {
+  border-color: #dc3545;
+}
+
+.submit-button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-payment {
+  color: var(--gray-light);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.payment-warning {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.payment-warning p {
+  color: #ffc107;
+  margin-bottom: 12px;
+}
+
+.retry-payment-btn {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.retry-payment-btn:hover {
+  background: rgba(255, 193, 7, 0.3);
+  border-color: #ffc107;
+}
+
 .order-total strong {
   color: var(--gold);
   font-size: 24px;
@@ -1430,4 +1608,515 @@ input:focus, textarea:focus, select:focus {
 .logout-btn.logging-out {
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   animation: fadeIn 0.3s ease;
+}
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  position: relative;
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 24px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger span {
+  width: 100%;
+  height: 3px;
+  background: var(--gold);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(7px, 7px);
+}
+
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ======================================== */
+
+/* Mobile Styles (up to 768px) */
+@media (max-width: 768px) {
+  /* Header - Mobile */
+  .app-header {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    position: relative;
+  }
+
+  .app-header h1 {
+    font-size: 18px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .app-header h1 a {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  /* Navigation - Mobile */
+  .app-header nav {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    flex-direction: column;
+    padding: 80px 24px 24px;
+    z-index: 1000;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .app-header nav.mobile-open {
+    display: flex;
+    right: 0;
+  }
+
+  .app-header nav a,
+  .app-header nav .logout-btn {
+    margin: 0 0 16px 0;
+    padding: 14px 16px;
+    width: 100%;
+    text-align: left;
+    border-radius: 8px;
+    font-size: 16px;
+    display: block;
+  }
+
+  .app-header nav .logout-btn {
+    margin-top: auto;
+    margin-bottom: 24px;
+  }
+
+  .mobile-menu-overlay {
+    display: block;
+  }
+
+  /* Main Content - Mobile */
+  .app-root main {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  .page {
+    padding: 0;
+  }
+
+  .page h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .page h3 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* Locations - Mobile */
+  .locations {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .loc-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  /* Menu Page - Mobile */
+  .menu-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .menu-item {
+    padding: 16px;
+  }
+
+  .menu-item h4 {
+    font-size: 18px;
+  }
+
+  .menu-bottom {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .menu-bottom button {
+    width: 100%;
+    padding: 14px;
+  }
+
+  /* Cart Page - Mobile */
+  .cart-item {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .cart-item-info {
+    width: 100%;
+  }
+
+  .qty-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cart-summary {
+    padding: 20px 16px;
+  }
+
+  .cart-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cart-actions button,
+  .cart-actions a {
+    width: 100%;
+  }
+
+  /* Checkout - Mobile */
+  .checkout-form {
+    padding: 20px 16px;
+  }
+
+  .checkout-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tip-buttons {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .tip-buttons button {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* Order Status - Mobile */
+  .order-status-page {
+    padding: 16px;
+  }
+
+  .order-status-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .header-actions button {
+    width: 100%;
+  }
+
+  .order-status-card {
+    padding: 16px;
+  }
+
+  .status-badge {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .order-breakdown {
+    padding: 16px;
+  }
+
+  .status-timeline {
+    padding: 16px;
+  }
+
+  /* Login/Register - Mobile */
+  .login-page {
+    padding: 20px 16px;
+  }
+
+  .login-container {
+    padding: 32px 24px;
+    max-width: 100%;
+  }
+
+  .login-title {
+    font-size: 28px;
+  }
+
+  .form-group {
+    gap: 8px;
+  }
+
+  .form-group input {
+    padding: 12px 14px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Dashboard - Mobile */
+  .dashboard-header {
+    margin-bottom: 20px;
+  }
+
+  .dashboard-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .order-status-breakdown {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Driver Dashboard - Mobile */
+  .dasher-dashboard {
+    padding: 16px;
+  }
+
+  .order-card {
+    padding: 16px;
+  }
+
+  .order-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .claim-btn,
+  .deliver-btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  /* Restaurant Dashboard - Mobile */
+  .dashboard-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dashboard-actions a,
+  .dashboard-actions button {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Admin Dashboard - Mobile */
+  .admin-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Confirmation Page - Mobile */
+  .order-confirmed-card {
+    padding: 24px 16px;
+  }
+
+  .success-icon {
+    font-size: 48px;
+  }
+
+  /* Footer - Mobile */
+  .app-footer {
+    padding: 16px;
+    font-size: 12px;
+    text-align: center;
+  }
+}
+
+/* Tablet Styles (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .app-header {
+    padding: 14px 20px;
+  }
+
+  .app-header h1 {
+    font-size: 20px;
+  }
+
+  .app-header nav a,
+  .app-header nav .logout-btn {
+    margin-left: 12px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .app-root main {
+    padding: 24px;
+  }
+
+  .locations {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-stats {
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 200px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .order-status-breakdown {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Small Mobile Styles (up to 480px) */
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 16px;
+  }
+
+  .page h2 {
+    font-size: 20px;
+  }
+
+  .login-title {
+    font-size: 24px;
+  }
+
+  .login-container {
+    padding: 24px 16px;
+  }
+
+  .stat-number {
+    font-size: 24px;
+  }
+
+  .order-status-card {
+    padding: 12px;
+  }
+
+  .cart-item {
+    padding: 12px;
+  }
+
+  .menu-item {
+    padding: 12px;
+  }
+}
+
+/* Large Desktop Styles (1025px and up) */
+@media (min-width: 1025px) {
+  .app-header nav {
+    display: flex !important;
+  }
+
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+
+  .app-header nav.mobile-open {
+    position: static;
+    width: auto;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    flex-direction: row;
+    overflow: visible;
+  }
+}
+
+/* Touch-friendly improvements for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .app-header nav a,
+  .app-header nav button,
+  .menu-bottom button,
+  .cart-actions button,
+  .cart-actions a,
+  .tip-buttons button,
+  .login-button,
+  .accept-btn,
+  .deliver-btn,
+  .claim-btn {
+    min-height: 44px; /* Apple's recommended touch target size */
+    padding: 12px 16px;
+  }
+
+  .qty-controls button {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

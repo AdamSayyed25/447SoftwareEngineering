@@ -1,21 +1,30 @@
 import express from 'express';
-import { dbAll, dbGet } from '../database/initDatabase.js';
+import { MenuItem } from '../models/MenuItem.js';
 
 const router = express.Router();
 
 // GET /api/menu/:locationId - Get menu for a specific location
 router.get('/:locationId', async (req, res, next) => {
   try {
-    const menu = await dbAll(
-      'SELECT * FROM menu_items WHERE location_id = ? ORDER BY name',
-      [req.params.locationId]
-    );
+    const menu = await MenuItem.find({ location_id: req.params.locationId })
+      .sort({ name: 1 })
+      .lean();
     
     if (menu.length === 0) {
       return res.status(404).json({ error: 'Menu not found for this location' });
     }
 
-    res.json(menu);
+    // Format response to match frontend expectations
+    const formattedMenu = menu.map(item => ({
+      id: item.id,
+      location_id: item.location_id,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category
+    }));
+
+    res.json(formattedMenu);
   } catch (err) {
     next(err);
   }
@@ -24,8 +33,20 @@ router.get('/:locationId', async (req, res, next) => {
 // GET /api/menu - Get all menu items across all locations
 router.get('/', async (req, res, next) => {
   try {
-    const menu = await dbAll('SELECT * FROM menu_items ORDER BY location_id, name');
-    res.json(menu);
+    const menu = await MenuItem.find()
+      .sort({ location_id: 1, name: 1 })
+      .lean();
+    
+    const formattedMenu = menu.map(item => ({
+      id: item.id,
+      location_id: item.location_id,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category
+    }));
+
+    res.json(formattedMenu);
   } catch (err) {
     next(err);
   }

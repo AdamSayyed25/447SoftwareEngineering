@@ -106,7 +106,7 @@ export default function DriverDashboard() {
                   <h4>Order #{order.id}</h4>
                   <span className="status-badge">{order.status}</span>
                 </div>
-                
+
                 <div className="order-info">
                   {/* Customer info (when available) */}
                   {order.recipient_name && (
@@ -125,13 +125,6 @@ export default function DriverDashboard() {
                   className="accept-btn"
                 >
                   Accept Order
-                </button>
-                <button
-                  onClick={() => declineOrder(order.id)}
-                  className="btn-secondary"
-                  style={{ marginLeft: 8 }}
-                >
-                  Decline
                 </button>
               </div>
             ))}
