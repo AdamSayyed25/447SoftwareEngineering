@@ -28,6 +28,14 @@ const menuItemSchema = new mongoose.Schema({
   category: {
     type: String,
     default: 'main'
+  },
+  is_available: {
+    type: Boolean,
+    default: true
+  },
+  image_url: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

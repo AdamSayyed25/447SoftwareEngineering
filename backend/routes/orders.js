@@ -49,6 +49,9 @@ router.post('/', async (req, res, next) => {
       }
     }
 
+    // Extract unique restaurant IDs from items
+    const restaurantIds = [...new Set(items.map(item => item.location_id).filter(Boolean))];
+
     const order = new Order({
       id: orderId,
       items,
@@ -59,6 +62,7 @@ router.post('/', async (req, res, next) => {
       payment_intent_id: paymentIntentId || null,
       payment_method_details: paymentMethodDetails,
       status: 'pending',
+      restaurant_ids: restaurantIds,
       created_at: now,
       updated_at: now
     });

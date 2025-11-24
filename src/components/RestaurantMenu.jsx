@@ -5,7 +5,15 @@ export default function RestaurantMenu() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({ id: '', name: '', description: '', price: '' })
+  const [form, setForm] = useState({
+    id: '',
+    name: '',
+    description: '',
+    price: '',
+    category: 'main',
+    image_url: '',
+    is_available: true
+  })
   const [saving, setSaving] = useState(false)
 
   async function load() {
@@ -21,7 +29,10 @@ export default function RestaurantMenu() {
 
   useEffect(() => { load() }, [])
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const onChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setForm({ ...form, [e.target.name]: value })
+  }
 
   async function addItem(e) {
     e.preventDefault()
@@ -31,10 +42,21 @@ export default function RestaurantMenu() {
         id: form.id.trim(),
         name: form.name.trim(),
         description: form.description.trim(),
-        price: Number(form.price)
+        price: Number(form.price),
+        category: form.category,
+        image_url: form.image_url,
+        is_available: form.is_available
       }
       await restaurantAPI.addMenuItem(payload)
-      setForm({ id: '', name: '', description: '', price: '' })
+      setForm({
+        id: '',
+        name: '',
+        description: '',
+        price: '',
+        category: 'main',
+        image_url: '',
+        is_available: true
+      })
       await load()
     } catch (e) {
       alert('Failed to add item')
@@ -62,53 +84,108 @@ export default function RestaurantMenu() {
     }
   }
 
-  if (loading) return <div className="page">Loading...</div>
+  if (loading) return <div>Loading menu...</div>
 
   return (
-    <div className="page">
+    <div className="menu-management">
       <div className="dashboard-header">
-        <h2>Menu Management</h2>
+        <h3>Menu Management</h3>
         <button className="btn-secondary" onClick={load}>Refresh</button>
       </div>
 
       {error && <div className="error">{error}</div>}
 
-      <form onSubmit={addItem} className="checkout-form" style={{ marginBottom: 20 }}>
-        <h3>Add New Item</h3>
-        <label>
-          ID
-          <input name="id" value={form.id} onChange={onChange} required />
-        </label>
-        <label>
-          Name
-          <input name="name" value={form.name} onChange={onChange} required />
-        </label>
+      <form onSubmit={addItem} className="checkout-form" style={{ marginBottom: 30, background: '#f8f9fa', padding: 20, borderRadius: 8 }}>
+        <h4>Add New Item</h4>
+        <div className="form-row" style={{ display: 'flex', gap: 15 }}>
+          <label style={{ flex: 1 }}>
+            ID
+            <input name="id" value={form.id} onChange={onChange} required placeholder="e.g. burger-01" />
+          </label>
+          <label style={{ flex: 2 }}>
+            Name
+            <input name="name" value={form.name} onChange={onChange} required placeholder="e.g. Classic Burger" />
+          </label>
+        </div>
+
         <label>
           Description
-          <input name="description" value={form.description} onChange={onChange} />
+          <input name="description" value={form.description} onChange={onChange} placeholder="Ingredients, allergens..." />
         </label>
+
+        <div className="form-row" style={{ display: 'flex', gap: 15 }}>
+          <label style={{ flex: 1 }}>
+            Price ($)
+            <input name="price" type="number" step="0.01" value={form.price} onChange={onChange} required />
+          </label>
+          <label style={{ flex: 1 }}>
+            Category
+            <select name="category" value={form.category} onChange={onChange}>
+              <option value="main">Main</option>
+              <option value="appetizer">Appetizer</option>
+              <option value="dessert">Dessert</option>
+              <option value="drink">Drink</option>
+            </select>
+          </label>
+        </div>
+
         <label>
-          Price
-          <input name="price" type="number" step="0.01" value={form.price} onChange={onChange} required />
+          Image URL
+          <input name="image_url" value={form.image_url} onChange={onChange} placeholder="https://..." />
         </label>
-        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Add Item'}</button>
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            name="is_available"
+            checked={form.is_available}
+            onChange={onChange}
+          />
+          Available for order
+        </label>
+
+        <button type="submit" className="btn-primary" disabled={saving} style={{ marginTop: 10 }}>
+          {saving ? 'Saving...' : 'Add Item'}
+        </button>
       </form>
 
       <section>
-        <h3>Existing Items</h3>
+        <h3>Existing Items ({items.length})</h3>
         <div className="orders-list">
           {items.map(it => (
-            <div key={it.id} className="order-card">
+            <div key={it.id} className={`order-card ${!it.is_available ? 'unavailable' : ''}`} style={{ opacity: it.is_available ? 1 : 0.7 }}>
               <div className="order-header">
-                <h4>{it.name} (${Number(it.price).toFixed(2)})</h4>
-                <span className="status-badge">{it.id}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {it.image_url && <img src={it.image_url} alt={it.name} style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />}
+                  <div>
+                    <h4>{it.name}</h4>
+                    <span className="muted" style={{ fontSize: '0.8em' }}>{it.category} • ${Number(it.price).toFixed(2)}</span>
+                  </div>
+                </div>
+                <span className={`status-badge ${it.is_available ? 'status-delivered' : 'status-cancelled'}`}>
+                  {it.is_available ? 'Available' : 'Unavailable'}
+                </span>
               </div>
+
               <div className="order-info">
                 <p className="muted">{it.description}</p>
-                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                  <button className="btn-secondary" onClick={() => updateItem(it.id, { name: prompt('New name', it.name) || it.name })}>Rename</button>
-                  <button className="btn-secondary" onClick={() => updateItem(it.id, { price: Number(prompt('New price', it.price) || it.price) })}>Change Price</button>
-                  <button className="accept-btn" onClick={() => deleteItem(it.id)}>Delete</button>
+                <div className="action-buttons" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button
+                    className="btn-secondary small"
+                    onClick={() => updateItem(it.id, { is_available: !it.is_available })}
+                  >
+                    {it.is_available ? 'Mark Unavailable' : 'Mark Available'}
+                  </button>
+                  <button
+                    className="btn-secondary small"
+                    onClick={() => {
+                      const newPrice = prompt('New price', it.price);
+                      if (newPrice) updateItem(it.id, { price: Number(newPrice) });
+                    }}
+                  >
+                    Edit Price
+                  </button>
+                  <button className="accept-btn small" onClick={() => deleteItem(it.id)}>Delete</button>
                 </div>
               </div>
             </div>

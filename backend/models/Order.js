@@ -12,6 +12,11 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     default: null
   },
+  restaurant_ids: {
+    type: [String],
+    default: [],
+    index: true
+  },
   items: {
     type: [{
       id: String,

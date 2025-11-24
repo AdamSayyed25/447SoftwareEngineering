@@ -177,7 +177,21 @@ export const restaurantAPI = {
     method: 'DELETE'
   }),
 
-  getOrders: () => apiRequest('/restaurant/orders')
+  getOrders: () => apiRequest('/restaurant/orders'),
+
+  updateOrderStatus: (orderId, status) => apiRequest(`/restaurant/orders/${orderId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  }),
+
+  getLocation: () => apiRequest('/restaurant/location'),
+
+  updateLocation: (data) => apiRequest('/restaurant/location', {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+
+  getStats: () => apiRequest('/restaurant/stats')
 };
 
 // Admin API
